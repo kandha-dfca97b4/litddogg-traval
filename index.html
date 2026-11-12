@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#fff7f5">
-  <meta name="description" content="两个人的小行李，一张清单就够啦。">
+  <meta name="description" content="单人旅行或双人同行，一张清单就够啦。">
   <title>出行带什么 🧳</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,18 +20,53 @@
         <span>little trip planner</span>
       </a>
       <div class="topbar-right">
-        <span id="syncBadge" class="sync-badge"><span class="status-dot"></span>本机保存</span>
+        <button id="homeBtn" class="topbar-home" type="button" hidden>⌂ 返回首页</button>
+        <span id="syncBadge" class="sync-badge" hidden><span class="status-dot"></span>本机保存</span>
       </div>
     </header>
 
-    <main>
+    <section id="homeScreen" class="home-screen">
+      <div class="home-hero">
+        <span class="home-eyebrow">YOUR LITTLE TRIP PLANNER</span>
+        <h1>出行带什么 <span>🧳</span></h1>
+        <p>每一次出发，都值得认真准备。<br>选择这次的旅行方式吧。</p>
+        <div class="home-decoration home-decoration-one">✿</div>
+        <div class="home-decoration home-decoration-two">♡</div>
+      </div>
+
+      <div class="mode-grid">
+        <button id="startSharedBtn" class="mode-card mode-shared" type="button">
+          <span class="mode-art"><span>🐱</span><span class="mode-heart">♡</span><span>🐻</span><span class="mode-bag">🧳</span></span>
+          <span class="mode-content">
+            <span class="mode-tag">TRAVEL TOGETHER</span>
+            <strong>邀请别人一起准备</strong>
+            <span class="mode-description">创建共享旅行清单，邀请同行伙伴。两个人可以分别回复、打勾，实时同步。</span>
+            <span class="mode-action">创建双人清单 <span>↗</span></span>
+          </span>
+        </button>
+
+        <button id="startSoloBtn" class="mode-card mode-solo" type="button">
+          <span class="mode-art"><span>🧳</span><span class="mode-plane">✈️</span><span class="mode-cloud">☁️</span></span>
+          <span class="mode-content">
+            <span class="mode-tag">SOLO JOURNEY</span>
+            <strong>一个人出发</strong>
+            <span class="mode-description">开启单人旅行模式。自己的物品、回复和打包进度都由自己安排。</span>
+            <span class="mode-action">开始单人旅行 <span>↗</span></span>
+          </span>
+        </button>
+      </div>
+
+      <p class="home-footnote"><span>☁</span> 双人实时同步 <i>·</i> 单人本地保存 <i>·</i> 随时导出旅行清单图片 <span>♡</span></p>
+    </section>
+
+    <main id="appMain" hidden>
       <section class="hero-card" id="exportArea">
         <div class="hero-decoration decoration-one">✿</div>
         <div class="hero-decoration decoration-two">♡</div>
         <div class="hero-content">
           <div class="eyebrow"><span></span> OUR LITTLE GETAWAY <span></span></div>
           <h1>出行带什么 <span class="title-suitcase">🧳</span></h1>
-          <p class="hero-subtitle">两个人的小行李，一张清单就够啦 <span>♡</span></p>
+          <p id="heroSubtitle" class="hero-subtitle">两个人的小行李，一张清单就够啦 <span>♡</span></p>
 
           <div class="trip-fields">
             <label class="field destination-field">
@@ -68,7 +103,7 @@
         <div class="workspace-heading">
           <div>
             <span class="section-kicker">THE CHECKLIST</span>
-            <h2>我们的行李清单 <span>🧺</span></h2>
+            <h2><span id="workspaceTitle">我们的行李清单</span> <span>🧺</span></h2>
           </div>
           <span id="itemCount" class="item-count">0 件物品</span>
         </div>
@@ -89,7 +124,7 @@
         </div>
 
         <div class="identity-bar">
-          <div class="identity-label"><span class="identity-sparkle">✦</span> 现在以谁的身份打勾？</div>
+          <div id="identityLabel" class="identity-label"><span class="identity-sparkle">✦</span> 现在以谁的身份打勾？</div>
           <div id="identityButtons" class="identity-buttons"></div>
           <span id="saveHint" class="save-hint">更改会自动保存</span>
         </div>
@@ -104,7 +139,7 @@
       </section>
     </main>
 
-    <footer class="footer">
+    <footer id="appFooter" class="footer" hidden>
       made for two, with a little love <span>♡</span>
     </footer>
   </div>
@@ -117,9 +152,9 @@
       </div>
       <label class="dialog-field"><span>物品名称</span><input id="itemName" type="text" maxlength="60" placeholder="比如：充电器" required></label>
       <label class="dialog-field"><span>放进哪个分类</span><select id="itemCategory"></select></label>
-      <div class="notes-heading"><span>两个人各自的回复</span><small>也可以稍后直接在清单里填写</small></div>
+      <div id="notesHeading" class="notes-heading"><span>两个人各自的回复</span><small>也可以稍后直接在清单里填写</small></div>
       <label class="dialog-field"><span>🐱 小猫的回复</span><input id="itemNoteA" type="text" maxlength="120" placeholder="比如：带上啦，已经放进包里"></label>
-      <label class="dialog-field"><span>🐻 小熊的回复</span><input id="itemNoteB" type="text" maxlength="120" placeholder="比如：还没准备好"></label>
+      <label id="itemNoteBField" class="dialog-field"><span>🐻 小熊的回复</span><input id="itemNoteB" type="text" maxlength="120" placeholder="比如：还没准备好"></label>
       <div class="dialog-actions">
         <button type="button" class="button button-quiet" data-close="itemDialog">先不加啦</button>
         <button type="submit" class="button button-primary">保存这件物品</button>
