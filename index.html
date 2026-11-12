@@ -118,7 +118,7 @@
             <button id="addItemBtn" class="button button-primary"><span>＋</span> 添加物品</button>
             <button id="addCategoryBtn" class="button button-soft"><span>✿</span> 新分类</button>
             <button id="inviteBtn" class="button button-outline"><span>♡</span> 邀请同行</button>
-            <button id="exportBtn" class="icon-button" title="保存成图片" aria-label="保存成图片">▧</button>
+            <button id="exportBtn" class="button button-soft export-button" title="保存为照片" aria-label="保存为照片"><span aria-hidden="true">▧</span><span>保存为照片</span></button>
             <button id="resetBtn" class="icon-button" title="重置勾选" aria-label="重置勾选">↺</button>
           </div>
         </div>
@@ -152,9 +152,9 @@
       </div>
       <label class="dialog-field"><span>物品名称</span><input id="itemName" type="text" maxlength="60" placeholder="比如：充电器" required></label>
       <label class="dialog-field"><span>放进哪个分类</span><select id="itemCategory"></select></label>
-      <div id="notesHeading" class="notes-heading"><span>两个人各自的回复</span><small>也可以稍后直接在清单里填写</small></div>
-      <label class="dialog-field"><span>🐱 小猫的回复</span><input id="itemNoteA" type="text" maxlength="120" placeholder="比如：带上啦，已经放进包里"></label>
-      <label id="itemNoteBField" class="dialog-field"><span>🐻 小熊的回复</span><input id="itemNoteB" type="text" maxlength="120" placeholder="比如：还没准备好"></label>
+      <div id="notesHeading" class="notes-heading"><span>两个人各自的小留言</span><small>也可以稍后直接在清单里填写</small></div>
+      <label class="dialog-field"><span>🐱 小猫的小留言</span><input id="itemNoteA" type="text" maxlength="120" placeholder="比如：带上啦，已经放进包里"></label>
+      <label id="itemNoteBField" class="dialog-field"><span>🐻 小熊的小留言</span><input id="itemNoteB" type="text" maxlength="120" placeholder="比如：还没准备好"></label>
       <div class="dialog-actions">
         <button type="button" class="button button-quiet" data-close="itemDialog">先不加啦</button>
         <button type="submit" class="button button-primary">保存这件物品</button>
