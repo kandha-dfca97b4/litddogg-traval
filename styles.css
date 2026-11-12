@@ -121,9 +121,17 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .item-tools { display: flex; align-items: center; gap: 3px; }
 .item-tool { display: grid; place-items: center; width: 27px; height: 27px; border: 0; border-radius: 8px; color: #b7abb3; background: transparent; font-size: 13px; }
 .item-tool:hover { color: #c77995; background: #fff3f5; }
-.item-notes { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-.note-chip { max-width: 100%; padding: 4px 7px; border-radius: 7px; color: #ad8797; background: #fff4f6; font-size: 9px; overflow-wrap: anywhere; }
-.note-chip.blue { color: #789eb2; background: #f0f8fb; }
+.item-replies { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
+.item-reply { display: flex; flex-direction: column; min-width: 0; gap: 6px; padding: 8px 10px; border: 1px solid #f1e8eb; border-radius: 11px; background: #fffafb; }
+.item-reply.reply-a { border-color: #f2e0e7; background: #fff7f9; }
+.item-reply.reply-b { border-color: #e2edf2; background: #f6fbfd; }
+.reply-person { display: flex; align-items: center; gap: 5px; color: #b17c91; font-size: 10px; font-weight: 750; }
+.reply-b .reply-person { color: #789eb2; }
+.reply-person .tiny-avatar { font-size: 12px; }
+.item-reply input { width: 100%; min-width: 0; padding: 2px 0; border: 0; outline: 0; color: #665b66; background: transparent; font: inherit; font-size: 11px; }
+.item-reply input::placeholder { color: #c3b5bd; }
+.reply-b input::placeholder { color: #aabec8; }
+.item-reply:focus-within { box-shadow: 0 0 0 2px rgba(221, 143, 169, .12); }
 .check-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
 .person-check { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px 5px 6px; border: 1px solid #f1e9eb; border-radius: 9px; color: #a69ba4; background: #fff; font-size: 9px; cursor: pointer; transition: background .15s, border-color .15s; }
 .person-check input { width: 13px; height: 13px; margin: 0; accent-color: #dc8ea7; }
