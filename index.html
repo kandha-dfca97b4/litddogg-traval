@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7f5">
+  <meta name="description" content="两个人的小行李，一张清单就够啦。">
+  <title>出行带什么 🧳</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="config.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="出行带什么首页">
+        <span class="brand-mark">🧳</span>
+        <span>little trip planner</span>
+      </a>
+      <div class="topbar-right">
+        <span id="syncBadge" class="sync-badge"><span class="status-dot"></span>本机保存</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-card" id="exportArea">
+        <div class="hero-decoration decoration-one">✿</div>
+        <div class="hero-decoration decoration-two">♡</div>
+        <div class="hero-content">
+          <div class="eyebrow"><span></span> OUR LITTLE GETAWAY <span></span></div>
+          <h1>出行带什么 <span class="title-suitcase">🧳</span></h1>
+          <p class="hero-subtitle">两个人的小行李，一张清单就够啦 <span>♡</span></p>
+
+          <div class="trip-fields">
+            <label class="field destination-field">
+              <span>这次想去</span>
+              <input id="destination" type="text" maxlength="40" placeholder="写下目的地，比如：厦门">
+            </label>
+            <label class="field">
+              <span>出发日期</span>
+              <input id="startDate" type="date">
+            </label>
+            <label class="field">
+              <span>返程日期</span>
+              <input id="endDate" type="date">
+            </label>
+          </div>
+
+          <div class="progress-panel">
+            <div class="progress-title">
+              <div>
+                <span class="section-kicker">PACKING PROGRESS</span>
+                <h2>准备得怎么样啦？</h2>
+              </div>
+              <strong id="overallProgress">0%</strong>
+            </div>
+            <div class="progress-track"><span id="overallBar"></span></div>
+            <p id="progressCaption" class="progress-caption">每完成一件小事，离出发就更近一点。</p>
+          </div>
+
+          <div id="memberProgress" class="member-progress"></div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="workspace-heading">
+          <div>
+            <span class="section-kicker">THE CHECKLIST</span>
+            <h2>我们的行李清单 <span>🧺</span></h2>
+          </div>
+          <span id="itemCount" class="item-count">0 件物品</span>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box">
+            <span>⌕</span>
+            <input id="searchInput" type="search" placeholder="找一找清单里的东西…" autocomplete="off">
+            <kbd>⌘ K</kbd>
+          </label>
+          <div class="toolbar-actions">
+            <button id="addItemBtn" class="button button-primary"><span>＋</span> 添加物品</button>
+            <button id="addCategoryBtn" class="button button-soft"><span>✿</span> 新分类</button>
+            <button id="inviteBtn" class="button button-outline"><span>♡</span> 邀请同行</button>
+            <button id="exportBtn" class="icon-button" title="保存成图片" aria-label="保存成图片">▧</button>
+            <button id="resetBtn" class="icon-button" title="重置勾选" aria-label="重置勾选">↺</button>
+          </div>
+        </div>
+
+        <div class="identity-bar">
+          <div class="identity-label"><span class="identity-sparkle">✦</span> 现在以谁的身份打勾？</div>
+          <div id="identityButtons" class="identity-buttons"></div>
+          <span id="saveHint" class="save-hint">更改会自动保存</span>
+        </div>
+
+        <div id="categoryList" class="category-list"></div>
+
+        <div class="bottom-note">
+          <span>☁</span>
+          <p>把要带的东西慢慢装进清单，也把期待装进行程里。</p>
+          <span>♡</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      made for two, with a little love <span>♡</span>
+    </footer>
+  </div>
+
+  <dialog id="itemDialog" class="dialog">
+    <form id="itemForm" method="dialog">
+      <div class="dialog-heading">
+        <div><span class="section-kicker">ONE MORE THING</span><h2 id="itemDialogTitle">添加一件物品</h2></div>
+        <button type="button" class="dialog-close" data-close="itemDialog" aria-label="关闭">×</button>
+      </div>
+      <label class="dialog-field"><span>物品名称</span><input id="itemName" type="text" maxlength="60" placeholder="比如：充电器" required></label>
+      <label class="dialog-field"><span>放进哪个分类</span><select id="itemCategory"></select></label>
+      <div class="notes-heading"><span>给彼此的小提醒</span><small>可以留空</small></div>
+      <label class="dialog-field"><span>🐱 小猫的备注</span><input id="itemNoteA" type="text" maxlength="120" placeholder="比如：放进随身包"></label>
+      <label class="dialog-field"><span>🐻 小熊的备注</span><input id="itemNoteB" type="text" maxlength="120" placeholder="比如：出门前检查"></label>
+      <div class="dialog-actions">
+        <button type="button" class="button button-quiet" data-close="itemDialog">先不加啦</button>
+        <button type="submit" class="button button-primary">保存这件物品</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="categoryDialog" class="dialog dialog-small">
+    <form id="categoryForm" method="dialog">
+      <div class="dialog-heading">
+        <div><span class="section-kicker">A LITTLE CATEGORY</span><h2>创建新分类</h2></div>
+        <button type="button" class="dialog-close" data-close="categoryDialog" aria-label="关闭">×</button>
+      </div>
+      <label class="dialog-field"><span>分类名称</span><input id="categoryName" type="text" maxlength="24" placeholder="比如：拍照装备" required></label>
+      <label class="dialog-field"><span>选一个小图标</span><input id="categoryEmoji" type="text" maxlength="4" value="🌷" placeholder="🌷"></label>
+      <div class="dialog-actions">
+        <button type="button" class="button button-quiet" data-close="categoryDialog">取消</button>
+        <button type="submit" class="button button-primary">创建分类</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="inviteDialog" class="dialog dialog-small">
+    <div class="dialog-heading">
+      <div><span class="section-kicker">BETTER TOGETHER</span><h2>把清单分享给同行的人 ♡</h2></div>
+      <button type="button" class="dialog-close" data-close="inviteDialog" aria-label="关闭">×</button>
+    </div>
+    <div id="inviteContent"></div>
+  </dialog>
+
+  <dialog id="syncDialog" class="dialog dialog-small">
+    <div class="dialog-heading">
+      <div><span class="section-kicker">CLOUD SYNC</span><h2>开启双人实时同步</h2></div>
+      <button type="button" class="dialog-close" data-close="syncDialog" aria-label="关闭">×</button>
+    </div>
+    <div class="sync-explainer">
+      <div class="sync-illustration">☁️ <span>↔</span> ☁️</div>
+      <p>现在这份清单保存在当前设备。配置 Supabase 后，就能创建共享空间，让两个人在不同手机上双向实时同步。</p>
+      <ol>
+        <li>创建免费的 Supabase 项目。</li>
+        <li>执行仓库里的 <code>supabase/schema.sql</code>。</li>
+        <li>把项目 URL 和 anon public key 填进 <code>config.js</code>。</li>
+      </ol>
+      <p class="security-note">只使用 anon public key，绝不要把 service_role 密钥放进网页或公开仓库。</p>
+      <a class="text-link" href="https://supabase.com/dashboard" target="_blank" rel="noreferrer">打开 Supabase 控制台 ↗</a>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
