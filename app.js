@@ -273,13 +273,13 @@
     const itemId = escapeHtml(item.id);
     const replyA =
       '<label class="item-reply reply-a">' +
-        '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personA.avatar) + '</span><span>' + escapeHtml(personA.name) + ' 的回复</span></span>' +
-        '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="a" value="' + escapeHtml(item.noteA || "") + '" placeholder="写下你的回复，例如：带上啦" aria-label="' + escapeHtml(personA.name) + ' 对 ' + escapeHtml(item.name) + ' 的回复">' +
+        '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personA.avatar) + '</span><span>' + escapeHtml(personA.name) + ' 的小留言</span></span>' +
+        '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="a" value="' + escapeHtml(item.noteA || "") + '" placeholder="写下你的小留言，例如：带上啦" aria-label="' + escapeHtml(personA.name) + ' 对 ' + escapeHtml(item.name) + ' 的小留言">' +
       '</label>';
     const replyB = personB
       ? '<label class="item-reply reply-b">' +
-          '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personB.avatar) + '</span><span>' + escapeHtml(personB.name) + ' 的回复</span></span>' +
-          '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="b" value="' + escapeHtml(item.noteB || "") + '" placeholder="写下你的回复，例如：还没准备" aria-label="' + escapeHtml(personB.name) + ' 对 ' + escapeHtml(item.name) + ' 的回复">' +
+          '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personB.avatar) + '</span><span>' + escapeHtml(personB.name) + ' 的小留言</span></span>' +
+          '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="b" value="' + escapeHtml(item.noteB || "") + '" placeholder="写下你的小留言，例如：还没准备" aria-label="' + escapeHtml(personB.name) + ' 对 ' + escapeHtml(item.name) + ' 的小留言">' +
         '</label>'
       : "";
     const checkA =
@@ -319,7 +319,7 @@
     $("itemNoteA").value = item ? item.noteA || "" : "";
     $("itemNoteB").value = item ? item.noteB || "" : "";
     $("itemNoteBField").hidden = appMode === "solo";
-    $("notesHeading").textContent = appMode === "solo" ? "我的回复" : "两个人各自的回复";
+    $("notesHeading").textContent = appMode === "solo" ? "我的小留言" : "两个人各自的小留言";
     openDialog("itemDialog");
     window.setTimeout(() => $("itemName").focus(), 50);
   }
@@ -657,7 +657,7 @@
     }
     const button = $("exportBtn");
     button.disabled = true;
-    button.textContent = "…";
+    button.textContent = "生成中…";
     const exportTarget = $("appMain");
     exportTarget.classList.add("is-exporting");
     try {
@@ -678,7 +678,7 @@
     } finally {
       exportTarget.classList.remove("is-exporting");
       button.disabled = false;
-      button.textContent = "▧";
+      button.innerHTML = '<span aria-hidden="true">▧</span><span>保存为照片</span>';
     }
   }
 
