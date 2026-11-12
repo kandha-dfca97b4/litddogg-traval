@@ -156,6 +156,11 @@
     $("destination").value = state.settings.destination || "";
     $("startDate").value = state.settings.startDate || "";
     $("endDate").value = state.settings.endDate || "";
+    $("workspaceTitle").textContent = appMode === "solo" ? "我的行李清单" : "我们的行李清单";
+    $("heroSubtitle").innerHTML = appMode === "solo"
+      ? '一个人的行李，也要准备得刚刚好 <span>♡</span>'
+      : '两个人的小行李，一张清单就够啦 <span>♡</span>';
+    $("inviteBtn").hidden = appMode === "solo";
     renderProgress();
     renderIdentity();
     renderCategories();
@@ -199,7 +204,7 @@
         : "每完成一件小事，离出发就更近一点。";
 
     $("memberProgress").innerHTML = people.map((person) => {
-      const count = items.filter((item) => item.doneA).length;
+      const count = items.filter((item) => person.id === "a" ? item.doneA : item.doneB).length;
       const rate = items.length ? Math.round(count / items.length * 100) : 0;
       return '<div class="member-card">' +
         '<div class="member-avatar">' + escapeHtml(person.avatar) + '</div>' +
@@ -233,8 +238,8 @@
       });
       if (query && !matchingItems.length) return;
 
-      const doneCount = allCategoryItems.reduce((sum, item) => sum + (item.doneA ? 1 : 0) + (item.doneB ? 1 : 0), 0);
-      const categoryTotal = allCategoryItems.length * 2;
+      const doneCount = allCategoryItems.reduce((sum, item) => sum + (item.doneA ? 1 : 0) + (appMode === "solo" ? 0 : (item.doneB ? 1 : 0)), 0);
+      const categoryTotal = allCategoryItems.length * (appMode === "solo" ? 1 : 2);
       const isCollapsed = collapsedCategories.has(category.id);
       const itemHtml = matchingItems.map(renderItem).join("");
       visibleCategoryHtml.push(
@@ -404,17 +409,20 @@
   }
 
   function resetChecks() {
-    if (!window.confirm("要把两个人的勾选状态都重置吗？物品和备注会保留。")) return;
+    const message = appMode === "solo"
+      ? "要重置这份清单的勾选状态吗？物品和回复会保留。"
+      : "要把两个人的勾选状态都重置吗？物品和备注会保留。";
+    if (!window.confirm(message)) return;
     updateState((next) => {
       next.items.forEach((item) => {
         if (!item.deleted) {
           item.doneA = false;
-          item.doneB = false;
+          if (appMode !== "solo") item.doneB = false;
           item.updatedAt = new Date().toISOString();
         }
       });
     });
-    showToast("勾选状态已重置，清单和备注都保留着。");
+    showToast("勾选状态已重置，清单和回复都保留着。");
   }
 
   function updateTripField(field, value) {
@@ -648,7 +656,7 @@
     button.disabled = true;
     button.textContent = "…";
     try {
-      const canvas = await window.html2canvas($("exportArea"), {
+      const canvas = await window.html2canvas($("appMain"), {
         backgroundColor: "#fff8f6",
         scale: Math.min(2, window.devicePixelRatio || 1),
         useCORS: true
