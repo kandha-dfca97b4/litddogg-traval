@@ -5,5 +5,5 @@
  */
 window.TRAVEL_CONFIG = {
   supabaseUrl: "https://xtbscghyftjqbhqcalp.supabase.co",
-  supabaseAnonKey: ""
+  supabaseAnonKey: "sb_publishable_KDVZBcww0pILbj9nqOaSiQ_31dKF4aI"
 };
