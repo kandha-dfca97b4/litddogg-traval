@@ -186,8 +186,9 @@
 
   function renderProgress() {
     const items = activeItems();
-    const total = items.length * 2;
-    const done = items.reduce((sum, item) => sum + (item.doneA ? 1 : 0) + (item.doneB ? 1 : 0), 0);
+    const people = appMode === "solo" ? state.settings.members.slice(0, 1) : state.settings.members;
+    const total = items.length * people.length;
+    const done = items.reduce((sum, item) => sum + (item.doneA ? 1 : 0) + (appMode === "solo" ? 0 : (item.doneB ? 1 : 0)), 0);
     const percent = total ? Math.round(done / total * 100) : 0;
     $("overallProgress").textContent = percent + "%";
     $("overallBar").style.width = percent + "%";
@@ -197,8 +198,8 @@
         ? "已经完成 " + done + " / " + total + " 项小准备，继续加油。"
         : "每完成一件小事，离出发就更近一点。";
 
-    $("memberProgress").innerHTML = state.settings.members.map((person) => {
-      const count = items.filter((item) => person.id === "a" ? item.doneA : item.doneB).length;
+    $("memberProgress").innerHTML = people.map((person) => {
+      const count = items.filter((item) => item.doneA).length;
       const rate = items.length ? Math.round(count / items.length * 100) : 0;
       return '<div class="member-card">' +
         '<div class="member-avatar">' + escapeHtml(person.avatar) + '</div>' +
@@ -210,6 +211,9 @@
   }
 
   function renderIdentity() {
+    $("identityLabel").innerHTML = appMode === "solo"
+      ? '<span class="identity-sparkle">✦</span> 正在整理自己的行李'
+      : '<span class="identity-sparkle">✦</span> 现在以谁的身份打勾？';
     $("identityButtons").innerHTML = state.settings.members.map((person) => {
       return '<button type="button" class="identity-button ' + (activeMember === person.id ? "active" : "") + '" data-select-member="' + person.id + '">' +
         escapeHtml(person.avatar) + " " + escapeHtml(person.name) + (activeMember === person.id ? " · 正在使用" : "") + "</button>";
@@ -238,7 +242,7 @@
           '<div class="category-header" data-toggle-category="' + escapeHtml(category.id) + '" role="button" tabindex="0">' +
             '<div class="category-emoji">' + escapeHtml(category.emoji) + '</div>' +
             '<div class="category-title-wrap"><h3 class="category-title">' + escapeHtml(category.name) + '</h3>' +
-              '<div class="category-subtitle">' + allCategoryItems.length + ' 件小物品 · 每个人都可以独立打勾</div></div>' +
+              '<div class="category-subtitle">' + allCategoryItems.length + ' 件小物品 · ' + (appMode === "solo" ? "准备好一件就勾选一件" : "每个人都可以独立打勾") + '</div></div>' +
             '<span class="category-progress">' + doneCount + ' / ' + categoryTotal + '</span>' +
             '<button class="category-toggle" type="button" aria-label="折叠或展开">' + (isCollapsed ? "+" : "−") + '</button>' +
           '</div>' +
