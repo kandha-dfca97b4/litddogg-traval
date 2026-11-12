@@ -30,6 +30,11 @@ declare
   v_result jsonb;
   v_key text;
   v_value jsonb;
+  v_field text;
+  v_stamp_key text;
+  v_patch_stamp timestamptz;
+  v_base_stamp timestamptz;
+  v_use_patch boolean;
 begin
   if p_base is null or p_base = 'null'::jsonb then
     return p_patch;
@@ -40,6 +45,96 @@ begin
   end if;
 
   if jsonb_typeof(p_base) = 'object' and jsonb_typeof(p_patch) = 'object' then
+    -- Checklist items merge each person's reply and checkbox independently.
+    -- This prevents one person's edit from overwriting the other person's
+    -- newer reply when both devices save the same item at nearly the same time.
+    if p_base ? 'id'
+       and p_patch ? 'id'
+       and p_base->>'id' = p_patch->>'id'
+       and (
+         p_base ? 'noteA' or p_patch ? 'noteA'
+         or p_base ? 'noteB' or p_patch ? 'noteB'
+         or p_base ? 'doneA' or p_patch ? 'doneA'
+         or p_base ? 'doneB' or p_patch ? 'doneB'
+       ) then
+      v_result := p_base;
+
+      if p_patch ? 'updatedAt' then
+        if not (p_base ? 'updatedAt') then
+          v_result := p_patch;
+        else
+          begin
+            if (p_patch->>'updatedAt')::timestamptz >= (p_base->>'updatedAt')::timestamptz then
+              v_result := p_patch;
+            end if;
+          exception when others then
+            v_result := p_patch;
+          end;
+        end if;
+      end if;
+
+      foreach v_field in array array['noteA', 'noteB', 'doneA', 'doneB']
+      loop
+        v_stamp_key := v_field || 'UpdatedAt';
+        v_use_patch := false;
+        v_patch_stamp := null;
+        v_base_stamp := null;
+
+        if p_patch ? v_field then
+          if p_patch ? v_stamp_key then
+            begin
+              v_patch_stamp := (p_patch->>v_stamp_key)::timestamptz;
+            exception when others then
+              v_patch_stamp := null;
+            end;
+
+            if p_base ? v_stamp_key then
+              begin
+                v_base_stamp := (p_base->>v_stamp_key)::timestamptz;
+              exception when others then
+                v_base_stamp := null;
+              end;
+            end if;
+
+            v_use_patch := (
+              v_patch_stamp is not null
+              and (v_base_stamp is null or v_patch_stamp >= v_base_stamp)
+            ) or not (p_base ? v_field);
+          elsif p_base ? v_stamp_key then
+            -- An older client without a field timestamp must not overwrite
+            -- a reply that has already been saved by a newer client.
+            v_use_patch := false;
+          elsif p_patch ? 'updatedAt' and p_base ? 'updatedAt' then
+            begin
+              v_use_patch := (p_patch->>'updatedAt')::timestamptz >= (p_base->>'updatedAt')::timestamptz;
+            exception when others then
+              v_use_patch := true;
+            end;
+          else
+            v_use_patch := true;
+          end if;
+        end if;
+
+        if v_use_patch then
+          v_result := jsonb_set(v_result, array[v_field], p_patch->v_field, true);
+          if p_patch ? v_stamp_key then
+            v_result := jsonb_set(v_result, array[v_stamp_key], p_patch->v_stamp_key, true);
+          else
+            v_result := v_result - v_stamp_key;
+          end if;
+        elsif p_base ? v_field then
+          v_result := jsonb_set(v_result, array[v_field], p_base->v_field, true);
+          if p_base ? v_stamp_key then
+            v_result := jsonb_set(v_result, array[v_stamp_key], p_base->v_stamp_key, true);
+          else
+            v_result := v_result - v_stamp_key;
+          end if;
+        end if;
+      end loop;
+
+      return v_result;
+    end if;
+
     if p_base ? 'updatedAt' and p_patch ? 'updatedAt' then
       begin
         if (p_patch->>'updatedAt')::timestamptz >= (p_base->>'updatedAt')::timestamptz then
@@ -90,11 +185,6 @@ begin
         case
           when b.value is null then p.value
           when p.value is null then b.value
-          when b.value ? 'updatedAt' and p.value ? 'updatedAt' then
-            case
-              when (p.value->>'updatedAt')::timestamptz >= (b.value->>'updatedAt')::timestamptz then p.value
-              else b.value
-            end
           else public.merge_trip_jsonb(b.value, p.value)
         end as value
       from (
