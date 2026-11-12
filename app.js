@@ -677,6 +677,9 @@
   }
 
   function bindEvents() {
+    $("startSoloBtn").addEventListener("click", startSoloMode);
+    $("startSharedBtn").addEventListener("click", startSharedMode);
+    $("homeBtn").addEventListener("click", returnToHome);
     $("addItemBtn").addEventListener("click", () => {
       if (!activeCategories().length) {
         showToast("先创建一个分类吧。");
@@ -788,19 +791,75 @@
     });
   }
 
+  function showAppScreen() {
+    $("homeScreen").hidden = true;
+    $("appMain").hidden = false;
+    $("appFooter").hidden = false;
+    $("homeBtn").hidden = false;
+    $("syncBadge").hidden = false;
+  }
+
+  function showHomeScreen() {
+    $("homeScreen").hidden = false;
+    $("appMain").hidden = true;
+    $("appFooter").hidden = true;
+    $("homeBtn").hidden = true;
+    $("syncBadge").hidden = true;
+  }
+
+  async function returnToHome() {
+    if (realtimeChannel && supabaseClient) {
+      try { await supabaseClient.removeChannel(realtimeChannel); } catch (error) { console.warn(error); }
+    }
+    realtimeChannel = null;
+    room = null;
+    appMode = "home";
+    history.replaceState(null, "", location.pathname + location.search);
+    showHomeScreen();
+    window.scrollTo(0, 0);
+  }
+
+  function startSoloMode() {
+    appMode = "solo";
+    room = null;
+    state = loadSoloState();
+    activeMember = "a";
+    localStorage.setItem(MEMBER_KEY, activeMember);
+    history.replaceState(null, "", location.pathname + location.search);
+    showAppScreen();
+    render();
+    setSyncStatus("local", "单人 · 本机保存");
+    $("saveHint").textContent = "自动保存在当前浏览器 · 可导出图片";
+    window.scrollTo(0, 0);
+  }
+
+  function startSharedMode() {
+    appMode = "shared";
+    room = null;
+    state = clone(DEFAULT_STATE);
+    activeMember = "a";
+    localStorage.setItem(MEMBER_KEY, activeMember);
+    showAppScreen();
+    render();
+    setSyncStatus("local", "正在创建共享清单");
+    createSharedRoom();
+    window.scrollTo(0, 0);
+  }
+
   function init() {
     bindEvents();
-    render();
     const urlRoom = getRoomFromUrl();
     if (urlRoom) {
+      appMode = "shared";
       room = { id: urlRoom.id, key: urlRoom.key };
       activeMember = urlRoom.member;
       localStorage.setItem(MEMBER_KEY, activeMember);
-      renderIdentity();
+      showAppScreen();
+      render();
       connectToRoom();
     } else {
-      setSyncStatus("local", "本机保存");
-      $("saveHint").textContent = "更改会自动保存在当前设备";
+      appMode = "home";
+      showHomeScreen();
     }
   }
 
