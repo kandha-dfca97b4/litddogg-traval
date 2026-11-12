@@ -518,9 +518,13 @@
       showInviteDialog();
       showToast("共享空间创建成功啦。");
     } catch (error) {
-      console.error(error);
+      console.error("createSharedRoom failed:", error);
+      const detail = error && (error.message || error.details || error.hint)
+        ? String(error.message || error.details || error.hint)
+        : String(error || "未知错误");
       setSyncStatus("error", "创建共享空间失败");
-      showToast("创建失败，请确认已执行 Supabase 数据库脚本。");
+      $("saveHint").textContent = detail.slice(0, 120);
+      showToast("创建失败：" + detail.slice(0, 110));
     }
   }
 
