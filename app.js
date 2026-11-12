@@ -145,6 +145,28 @@
     $("itemCount").textContent = activeItems().length + " 件物品";
   }
 
+  function renderPreservingReplyFocus() {
+    const active = document.activeElement;
+    const focusInfo = active && active.matches && active.matches("[data-item-reply]")
+      ? {
+          itemId: active.dataset.itemReply,
+          memberId: active.dataset.member,
+          start: active.selectionStart,
+          end: active.selectionEnd
+        }
+      : null;
+    render();
+    if (!focusInfo) return;
+    const target = Array.from($("categoryList").querySelectorAll("[data-item-reply]")).find((input) =>
+      input.dataset.itemReply === focusInfo.itemId && input.dataset.member === focusInfo.memberId
+    );
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    if (typeof focusInfo.start === "number" && typeof focusInfo.end === "number") {
+      try { target.setSelectionRange(focusInfo.start, focusInfo.end); } catch (error) { /* input may not support selection */ }
+    }
+  }
+
   function renderProgress() {
     const items = activeItems();
     const total = items.length * 2;
@@ -219,22 +241,30 @@
     const personA = member("a");
     const personB = member("b");
     const bothDone = item.doneA && item.doneB;
-    const notes = (item.noteA ? '<span class="note-chip">🐱 ' + escapeHtml(item.noteA) + '</span>' : "") +
-      (item.noteB ? '<span class="note-chip blue">🐻 ' + escapeHtml(item.noteB) + '</span>' : "");
-    return '<article class="item-card" data-item="' + escapeHtml(item.id) + '">' +
+    const itemId = escapeHtml(item.id);
+    return '<article class="item-card" data-item="' + itemId + '">' +
       '<div class="item-topline"><p class="item-name ' + (bothDone ? "done-both" : "") + '">' + escapeHtml(item.name) + '</p>' +
         '<div class="item-tools">' +
-          '<button type="button" class="item-tool" data-edit-item="' + escapeHtml(item.id) + '" title="编辑">✎</button>' +
-          '<button type="button" class="item-tool" data-delete-item="' + escapeHtml(item.id) + '" title="删除">×</button>' +
+          '<button type="button" class="item-tool" data-edit-item="' + itemId + '" title="编辑">✎</button>' +
+          '<button type="button" class="item-tool" data-delete-item="' + itemId + '" title="删除">×</button>' +
         '</div></div>' +
-      (notes ? '<div class="item-notes">' + notes + '</div>' : "") +
+      '<div class="item-replies">' +
+        '<label class="item-reply reply-a">' +
+          '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personA.avatar) + '</span><span>' + escapeHtml(personA.name) + ' 的回复</span></span>' +
+          '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="a" value="' + escapeHtml(item.noteA || "") + '" placeholder="写下你的回复，例如：带上啦" aria-label="' + escapeHtml(personA.name) + ' 对 ' + escapeHtml(item.name) + ' 的回复">' +
+        '</label>' +
+        '<label class="item-reply reply-b">' +
+          '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personB.avatar) + '</span><span>' + escapeHtml(personB.name) + ' 的回复</span></span>' +
+          '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="b" value="' + escapeHtml(item.noteB || "") + '" placeholder="写下你的回复，例如：还没准备" aria-label="' + escapeHtml(personB.name) + ' 对 ' + escapeHtml(item.name) + ' 的回复">' +
+        '</label>' +
+      '</div>' +
       '<div class="check-row">' +
         '<label class="person-check ' + (item.doneA ? "checked-a" : "") + '">' +
-          '<input type="checkbox" data-item-check="' + escapeHtml(item.id) + '" data-member="a" ' + (item.doneA ? "checked" : "") + '>' +
+          '<input type="checkbox" data-item-check="' + itemId + '" data-member="a" ' + (item.doneA ? "checked" : "") + '>' +
           '<span class="tiny-avatar">' + escapeHtml(personA.avatar) + '</span><span>' + escapeHtml(personA.name) + (item.doneA ? " 已收好" : " 待准备") + '</span>' +
         '</label>' +
         '<label class="person-check ' + (item.doneB ? "checked-b" : "") + '">' +
-          '<input type="checkbox" data-item-check="' + escapeHtml(item.id) + '" data-member="b" ' + (item.doneB ? "checked" : "") + '>' +
+          '<input type="checkbox" data-item-check="' + itemId + '" data-member="b" ' + (item.doneB ? "checked" : "") + '>' +
           '<span class="tiny-avatar">' + escapeHtml(personB.avatar) + '</span><span>' + escapeHtml(personB.name) + (item.doneB ? " 已收好" : " 待准备") + '</span>' +
         '</label>' +
       '</div></article>';
@@ -271,18 +301,22 @@
     const noteB = $("itemNoteB").value.trim();
     updateState((next) => {
       const existing = next.items.find((item) => item.id === editingItemId);
+      const now = new Date().toISOString();
       if (existing) {
         existing.name = name;
         existing.categoryId = categoryId;
+        if ((existing.noteA || "") !== noteA) existing.noteAUpdatedAt = now;
+        if ((existing.noteB || "") !== noteB) existing.noteBUpdatedAt = now;
         existing.noteA = noteA;
         existing.noteB = noteB;
-        existing.updatedAt = new Date().toISOString();
+        existing.updatedAt = now;
       } else {
         const categoryItems = next.items.filter((item) => !item.deleted && item.categoryId === categoryId);
         next.items.push({
           id: makeId(), categoryId: categoryId, name: name, noteA: noteA, noteB: noteB,
-          doneA: false, doneB: false, sortOrder: categoryItems.length, deleted: false,
-          updatedAt: new Date().toISOString()
+          noteAUpdatedAt: now, noteBUpdatedAt: now,
+          doneA: false, doneB: false, doneAUpdatedAt: now, doneBUpdatedAt: now,
+          sortOrder: categoryItems.length, deleted: false, updatedAt: now
         });
       }
     });
@@ -398,7 +432,7 @@
       localVersion = 0;
       lastSyncedVersion = 0;
       saveLocalState();
-      render();
+      renderPreservingReplyFocus();
       await subscribeToRoom();
       setSyncStatus("cloud", "双人实时同步");
       $("saveHint").textContent = "已连接共享清单";
@@ -439,7 +473,7 @@
       localVersion += 1;
       lastSyncedVersion = localVersion;
       saveLocalState();
-      render();
+      renderPreservingReplyFocus();
       $("saveHint").textContent = "刚刚同步完成";
       setSyncStatus("cloud", "双人实时同步");
     } catch (error) {
@@ -475,7 +509,7 @@
       if (localVersion === sentVersion) {
         state = response.data.state;
         saveLocalState();
-        render();
+        renderPreservingReplyFocus();
         $("saveHint").textContent = "所有更改都已同步";
       } else {
         saveAgain = true;
@@ -631,17 +665,42 @@
       });
     });
 
+    $("categoryList").addEventListener("input", (event) => {
+      const replyInput = event.target.closest("[data-item-reply]");
+      if (!replyInput) return;
+      const itemId = replyInput.dataset.itemReply;
+      const memberId = replyInput.dataset.member;
+      const field = memberId === "a" ? "noteA" : "noteB";
+      const stampField = field + "UpdatedAt";
+      const value = replyInput.value;
+      const now = new Date().toISOString();
+      updateState((next) => {
+        const item = next.items.find((entry) => entry.id === itemId);
+        if (item) {
+          item[field] = value;
+          item[stampField] = now;
+          item.updatedAt = now;
+        }
+      }, false);
+    });
+
     $("categoryList").addEventListener("change", (event) => {
       const checkbox = event.target.closest("[data-item-check]");
       if (!checkbox) return;
       const itemId = checkbox.dataset.itemCheck;
       const memberId = checkbox.dataset.member;
+      const now = new Date().toISOString();
       updateState((next) => {
         const item = next.items.find((entry) => entry.id === itemId);
         if (item) {
-          if (memberId === "a") item.doneA = checkbox.checked;
-          else item.doneB = checkbox.checked;
-          item.updatedAt = new Date().toISOString();
+          if (memberId === "a") {
+            item.doneA = checkbox.checked;
+            item.doneAUpdatedAt = now;
+          } else {
+            item.doneB = checkbox.checked;
+            item.doneBUpdatedAt = now;
+          }
+          item.updatedAt = now;
         }
       });
     });
