@@ -260,35 +260,39 @@
 
   function renderItem(item) {
     const personA = member("a");
-    const personB = member("b");
-    const bothDone = item.doneA && item.doneB;
+    const personB = appMode === "solo" ? null : member("b");
+    const bothDone = item.doneA && (appMode === "solo" || item.doneB);
     const itemId = escapeHtml(item.id);
+    const replyA =
+      '<label class="item-reply reply-a">' +
+        '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personA.avatar) + '</span><span>' + escapeHtml(personA.name) + ' 的回复</span></span>' +
+        '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="a" value="' + escapeHtml(item.noteA || "") + '" placeholder="写下你的回复，例如：带上啦" aria-label="' + escapeHtml(personA.name) + ' 对 ' + escapeHtml(item.name) + ' 的回复">' +
+      '</label>';
+    const replyB = personB
+      ? '<label class="item-reply reply-b">' +
+          '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personB.avatar) + '</span><span>' + escapeHtml(personB.name) + ' 的回复</span></span>' +
+          '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="b" value="' + escapeHtml(item.noteB || "") + '" placeholder="写下你的回复，例如：还没准备" aria-label="' + escapeHtml(personB.name) + ' 对 ' + escapeHtml(item.name) + ' 的回复">' +
+        '</label>'
+      : "";
+    const checkA =
+      '<label class="person-check ' + (item.doneA ? "checked-a" : "") + '">' +
+        '<input type="checkbox" data-item-check="' + itemId + '" data-member="a" ' + (item.doneA ? "checked" : "") + '>' +
+        '<span class="tiny-avatar">' + escapeHtml(personA.avatar) + '</span><span>' + escapeHtml(personA.name) + (item.doneA ? " 已收好" : " 待准备") + '</span>' +
+      '</label>';
+    const checkB = personB
+      ? '<label class="person-check ' + (item.doneB ? "checked-b" : "") + '">' +
+          '<input type="checkbox" data-item-check="' + itemId + '" data-member="b" ' + (item.doneB ? "checked" : "") + '>' +
+          '<span class="tiny-avatar">' + escapeHtml(personB.avatar) + '</span><span>' + escapeHtml(personB.name) + (item.doneB ? " 已收好" : " 待准备") + '</span>' +
+        '</label>'
+      : "";
     return '<article class="item-card" data-item="' + itemId + '">' +
       '<div class="item-topline"><p class="item-name ' + (bothDone ? "done-both" : "") + '">' + escapeHtml(item.name) + '</p>' +
         '<div class="item-tools">' +
           '<button type="button" class="item-tool" data-edit-item="' + itemId + '" title="编辑">✎</button>' +
           '<button type="button" class="item-tool" data-delete-item="' + itemId + '" title="删除">×</button>' +
         '</div></div>' +
-      '<div class="item-replies">' +
-        '<label class="item-reply reply-a">' +
-          '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personA.avatar) + '</span><span>' + escapeHtml(personA.name) + ' 的回复</span></span>' +
-          '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="a" value="' + escapeHtml(item.noteA || "") + '" placeholder="写下你的回复，例如：带上啦" aria-label="' + escapeHtml(personA.name) + ' 对 ' + escapeHtml(item.name) + ' 的回复">' +
-        '</label>' +
-        '<label class="item-reply reply-b">' +
-          '<span class="reply-person"><span class="tiny-avatar">' + escapeHtml(personB.avatar) + '</span><span>' + escapeHtml(personB.name) + ' 的回复</span></span>' +
-          '<input type="text" maxlength="120" data-item-reply="' + itemId + '" data-member="b" value="' + escapeHtml(item.noteB || "") + '" placeholder="写下你的回复，例如：还没准备" aria-label="' + escapeHtml(personB.name) + ' 对 ' + escapeHtml(item.name) + ' 的回复">' +
-        '</label>' +
-      '</div>' +
-      '<div class="check-row">' +
-        '<label class="person-check ' + (item.doneA ? "checked-a" : "") + '">' +
-          '<input type="checkbox" data-item-check="' + itemId + '" data-member="a" ' + (item.doneA ? "checked" : "") + '>' +
-          '<span class="tiny-avatar">' + escapeHtml(personA.avatar) + '</span><span>' + escapeHtml(personA.name) + (item.doneA ? " 已收好" : " 待准备") + '</span>' +
-        '</label>' +
-        '<label class="person-check ' + (item.doneB ? "checked-b" : "") + '">' +
-          '<input type="checkbox" data-item-check="' + itemId + '" data-member="b" ' + (item.doneB ? "checked" : "") + '>' +
-          '<span class="tiny-avatar">' + escapeHtml(personB.avatar) + '</span><span>' + escapeHtml(personB.name) + (item.doneB ? " 已收好" : " 待准备") + '</span>' +
-        '</label>' +
-      '</div></article>';
+      '<div class="item-replies">' + replyA + replyB + '</div>' +
+      '<div class="check-row">' + checkA + checkB + '</div></article>';
   }
 
   function populateCategorySelect(selectedId) {
@@ -306,6 +310,8 @@
     populateCategorySelect(item ? item.categoryId : (activeCategories()[0] || {}).id);
     $("itemNoteA").value = item ? item.noteA || "" : "";
     $("itemNoteB").value = item ? item.noteB || "" : "";
+    $("itemNoteBField").hidden = appMode === "solo";
+    $("notesHeading").textContent = appMode === "solo" ? "我的回复" : "两个人各自的回复";
     openDialog("itemDialog");
     window.setTimeout(() => $("itemName").focus(), 50);
   }
