@@ -341,3 +341,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   .home-footnote { flex-wrap: wrap; gap: 6px; font-size: 9px; }
   .topbar-home { padding: 7px 9px; font-size: 10px; }
 }
+
+.item-replies.solo-replies { grid-template-columns: minmax(0, 1fr); }
+.is-exporting .toolbar,
+.is-exporting .identity-bar,
+.is-exporting .item-tools { display: none !important; }
