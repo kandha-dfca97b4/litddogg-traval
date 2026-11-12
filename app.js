@@ -83,8 +83,11 @@
     } catch (error) {
       console.warn("Could not read solo checklist", error);
     }
+    const savedName = solo && solo.settings.members && solo.settings.members[0]
+      ? solo.settings.members[0].name
+      : "我";
     solo = solo || JSON.parse(JSON.stringify(DEFAULT_STATE));
-    solo.settings.members = [{ id: "a", name: "我", avatar: "🧳" }];
+    solo.settings.members = [{ id: "a", name: savedName || "我", avatar: "🧳" }];
     solo.items = solo.items.map((item) => ({ ...item, noteB: "", doneB: false }));
     return solo;
   }
@@ -811,6 +814,10 @@
   }
 
   async function returnToHome() {
+    if (room && localVersion > lastSyncedVersion) {
+      window.clearTimeout(saveTimer);
+      await flushCloudSave();
+    }
     if (realtimeChannel && supabaseClient) {
       try { await supabaseClient.removeChannel(realtimeChannel); } catch (error) { console.warn(error); }
     }
