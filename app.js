@@ -296,7 +296,7 @@
           '<button type="button" class="item-tool" data-edit-item="' + itemId + '" title="编辑">✎</button>' +
           '<button type="button" class="item-tool" data-delete-item="' + itemId + '" title="删除">×</button>' +
         '</div></div>' +
-      '<div class="item-replies">' + replyA + replyB + '</div>' +
+      '<div class="item-replies ' + (appMode === "solo" ? "solo-replies" : "") + '">' + replyA + replyB + '</div>' +
       '<div class="check-row">' + checkA + checkB + '</div></article>';
   }
 
@@ -655,8 +655,10 @@
     const button = $("exportBtn");
     button.disabled = true;
     button.textContent = "…";
+    const exportTarget = $("appMain");
+    exportTarget.classList.add("is-exporting");
     try {
-      const canvas = await window.html2canvas($("appMain"), {
+      const canvas = await window.html2canvas(exportTarget, {
         backgroundColor: "#fff8f6",
         scale: Math.min(2, window.devicePixelRatio || 1),
         useCORS: true
@@ -671,6 +673,7 @@
       window.print();
       showToast("图片生成失败，已为你打开打印页面。");
     } finally {
+      exportTarget.classList.remove("is-exporting");
       button.disabled = false;
       button.textContent = "▧";
     }
