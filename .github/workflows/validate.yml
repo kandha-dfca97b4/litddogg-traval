@@ -3,7 +3,7 @@ name: Validate checklist
 on:
   pull_request:
   push:
-    branches: [feat/travel-checklist-v1]
+    branches: [main, feat/travel-checklist-v1]
 
 jobs:
   validate:
