@@ -2,6 +2,7 @@
   "use strict";
 
   const STORAGE_KEY = "travel-checklist-v1";
+  const SOLO_STORAGE_KEY = "travel-checklist-solo-v1";
   const MEMBER_KEY = "travel-checklist-member";
   const config = window.TRAVEL_CONFIG || {};
 
@@ -43,6 +44,7 @@
     ]
   };
 
+  let appMode = "home";
   let state = loadLocalState();
   let activeMember = localStorage.getItem(MEMBER_KEY) || "a";
   let editingItemId = null;
@@ -73,9 +75,24 @@
     return JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
 
+  function loadSoloState() {
+    let solo = null;
+    try {
+      const saved = JSON.parse(localStorage.getItem(SOLO_STORAGE_KEY) || "null");
+      if (saved && saved.settings && Array.isArray(saved.items) && Array.isArray(saved.categories)) solo = saved;
+    } catch (error) {
+      console.warn("Could not read solo checklist", error);
+    }
+    solo = solo || JSON.parse(JSON.stringify(DEFAULT_STATE));
+    solo.settings.members = [{ id: "a", name: "我", avatar: "🧳" }];
+    solo.items = solo.items.map((item) => ({ ...item, noteB: "", doneB: false }));
+    return solo;
+  }
+
   function saveLocalState() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const storageKey = appMode === "solo" ? SOLO_STORAGE_KEY : STORAGE_KEY;
+      localStorage.setItem(storageKey, JSON.stringify(state));
     } catch (error) {
       console.warn("Could not save checklist locally", error);
       showToast("本机存储空间不足，建议先保存图片。");
