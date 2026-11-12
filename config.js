@@ -1,10 +1,9 @@
 /*
  * Supabase public client configuration.
- * Fill these two values after creating your Supabase project.
- * The anon/public key is designed for browser use when RLS and RPC permissions
- * are configured correctly. NEVER put a service_role key here.
+ * The anon/publishable key is intended for browser use.
+ * NEVER put a service_role or secret key here.
  */
 window.TRAVEL_CONFIG = {
-  supabaseUrl: "",
+  supabaseUrl: "https://xtbscghyftjqbhqcalp.supabase.co",
   supabaseAnonKey: ""
 };
