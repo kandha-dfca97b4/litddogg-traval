@@ -116,7 +116,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .category-items { display: grid; gap: 0; padding: 0 12px 9px; }
 .item-card { padding: 12px 8px 10px; border-top: 1px solid #f6f0f0; }
 .item-topline { display: flex; align-items: center; gap: 8px; }
-.item-name { flex: 1; min-width: 0; margin: 0; color: #514a56; font-size: 12px; font-weight: 750; overflow-wrap: anywhere; }
+.item-name { flex: 1; min-width: 0; margin: 0; color: #514a56; font-size: 14px; font-weight: 850; line-height: 1.5; overflow-wrap: anywhere; }
 .item-name.done-both { color: #aaa1a9; text-decoration: line-through; text-decoration-color: #d8cbd1; }
 .item-tools { display: flex; align-items: center; gap: 3px; }
 .item-tool { display: grid; place-items: center; width: 27px; height: 27px; border: 0; border-radius: 8px; color: #b7abb3; background: transparent; font-size: 13px; }
@@ -346,3 +346,17 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .is-exporting .toolbar,
 .is-exporting .identity-bar,
 .is-exporting .item-tools { display: none !important; }
+
+/* Clearer export action and more readable checklist item names */
+.export-button { min-height: 36px; padding-inline: 11px; color: #9a7c8b; border-color: #f1e5e9; background: #fff5f6; }
+.export-button span:first-child { font-size: 17px; line-height: 1; }
+@media (max-width: 760px) {
+  .toolbar-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .toolbar-actions .export-button { grid-column: span 2; }
+  .toolbar-actions .export-button { justify-content: center; }
+  .item-name { font-size: 13.5px; font-weight: 850; }
+}
+@media (max-width: 390px) {
+  .toolbar-actions .export-button { font-size: 9px; }
+  .item-name { font-size: 13px; }
+}
