@@ -4,6 +4,6 @@
  * NEVER put a service_role or secret key here.
  */
 window.TRAVEL_CONFIG = {
-  supabaseUrl: "https://xtbscghyftjqbhqcalp.supabase.co",
+  supabaseUrl: "https://xtbscghyfjtqbjhqcalp.supabase.co",
   supabaseAnonKey: "sb_publishable_KDVZBcww0pILbj9nqOaSiQ_31dKF4aI"
 };
