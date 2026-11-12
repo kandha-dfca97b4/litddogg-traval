@@ -1,5 +1,6 @@
 -- 出行带什么 🧳 — private-by-capability shared rooms
--- Run this entire file once in Supabase SQL Editor.
+-- Run this entire file in Supabase SQL Editor when setting up or updating the sync schema.
+-- It uses CREATE OR REPLACE and IF NOT EXISTS; rerunning it does not delete existing rooms.
 -- The browser receives only an anon/public key. Table access is denied directly;
 -- all reads and writes go through SECURITY DEFINER RPCs that verify the invite code.
 
