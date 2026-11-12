@@ -23,6 +23,7 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      # Enable the Pages site if this repository has not published one yet.
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
