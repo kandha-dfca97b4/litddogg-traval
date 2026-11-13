@@ -58,6 +58,7 @@
   let saveTimer = null;
   let saveInFlight = false;
   let saveAgain = false;
+  let cloudSaveRetryAt = 0;
   let toastTimer = null;
 
   const $ = (id) => document.getElementById(id);
@@ -458,7 +459,7 @@
   async function connectToRoom() {
     if (!hasCloudConfig()) {
       setSyncStatus("error", "需要配置云同步");
-      $("saveHint").textContent = "邀请链接已识别，等待配置 Supabase";
+      $("saveHint").textContent = "云端连接组件或项目配置尚未就绪";
       return;
     }
     try {
@@ -472,7 +473,7 @@
       saveLocalState();
       renderPreservingReplyFocus();
       await subscribeToRoom();
-      setSyncStatus("cloud", "双人实时同步");
+      setSyncStatus("cloud", "双人云端同步");
       $("saveHint").textContent = "已连接共享清单";
       showToast("共享清单连接成功，欢迎一起准备出发。");
     } catch (error) {
@@ -493,7 +494,7 @@
     });
     realtimeChannel.on("broadcast", { event: "refresh" }, () => refreshFromCloud());
     realtimeChannel.subscribe((status) => {
-      if (status === "SUBSCRIBED") setSyncStatus("cloud", "双人实时同步");
+      if (status === "SUBSCRIBED") setSyncStatus("cloud", "双人云端同步");
     });
   }
 
@@ -513,16 +514,19 @@
       saveLocalState();
       renderPreservingReplyFocus();
       $("saveHint").textContent = "刚刚同步完成";
-      setSyncStatus("cloud", "双人实时同步");
+      setSyncStatus("cloud", "双人云端同步");
     } catch (error) {
       console.warn("Could not refresh shared checklist", error);
+      setSyncStatus("error", "云端连接中断");
+      $("saveHint").textContent = "无法读取云端，已保留本机内容";
     }
   }
 
   function queueCloudSave() {
     if (!room || !hasCloudConfig()) return;
     window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(flushCloudSave, 420);
+    const delay = Math.max(420, cloudSaveRetryAt - Date.now());
+    saveTimer = window.setTimeout(flushCloudSave, delay);
   }
 
   async function flushCloudSave() {
@@ -543,6 +547,7 @@
       });
       if (response.error) throw response.error;
       cloudRevision = Number(response.data.revision || cloudRevision + 1);
+      cloudSaveRetryAt = 0;
       lastSyncedVersion = sentVersion;
       if (localVersion === sentVersion) {
         state = response.data.state;
@@ -552,12 +557,13 @@
       } else {
         saveAgain = true;
       }
-      setSyncStatus("cloud", "双人实时同步");
+      setSyncStatus("cloud", "双人云端同步");
       if (realtimeChannel) {
         realtimeChannel.send({ type: "broadcast", event: "refresh", payload: { revision: cloudRevision } });
       }
     } catch (error) {
       console.error(error);
+      cloudSaveRetryAt = Date.now() + 12000;
       setSyncStatus("error", "同步暂时失败");
       $("saveHint").textContent = "本机已保存，云端同步失败";
       showToast("本机内容已保存，但云端同步失败。");
@@ -584,7 +590,7 @@
       const params = new URLSearchParams({ room: room.id, key: room.key, member: activeMember });
       history.replaceState(null, "", location.pathname + location.search + "#" + params.toString());
       await subscribeToRoom();
-      setSyncStatus("cloud", "双人实时同步");
+      setSyncStatus("cloud", "双人云端同步");
       $("saveHint").textContent = "共享空间已创建";
       render();
       showInviteDialog();
@@ -609,7 +615,7 @@
     const url = location.origin + location.pathname + location.search + "#room=" +
       encodeURIComponent(room.id) + "&key=" + encodeURIComponent(room.key) + "&member=b";
     $("inviteContent").innerHTML =
-      '<div class="invite-card"><p>把这条专属邀请链接发给同行的人。打开后就能看到同一份清单，双方的修改会实时同步。</p>' +
+      '<div class="invite-card"><p>把这条专属邀请链接发给同行的人。打开后就能看到同一份清单，双方的修改会在几秒内自动同步。</p>' +
       '<span class="invite-url" id="inviteUrl">' + escapeHtml(url) + '</span>' +
       '<div class="invite-actions"><button type="button" class="button button-primary" id="copyInviteBtn">复制邀请链接</button>' +
       '<button type="button" class="button button-outline" id="nativeShareBtn">分享</button></div></div>' +
@@ -846,7 +852,8 @@
   function startSharedMode() {
     appMode = "shared";
     room = null;
-    state = clone(DEFAULT_STATE);
+    // Carry over an earlier on-device shared draft when cloud sync was unavailable.
+    state = loadLocalState();
     activeMember = "a";
     localStorage.setItem(MEMBER_KEY, activeMember);
     showAppScreen();
